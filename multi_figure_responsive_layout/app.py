@@ -4,7 +4,12 @@ import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
+from dash.exceptions import PreventUpdate
+
 import plotly_express as px
+
+n_figures = 10
 
 
 def make_figure():
@@ -52,13 +57,39 @@ body = dbc.Container(
             ],
             className="mt-4",
         ),
-        dbc.Row([make_figure_section(i) for i in range(10)],),
+        dbc.Row([make_figure_section(i) for i in range(n_figures)]),
+        dbc.Row(
+            dbc.Col(
+                dbc.Button(
+                    "Refresh Figures", id="refresh_button", color="primary", block=True,
+                ),
+                lg={"size": 4, "offset": 4},
+                md={"size": 6, "offset": 3},
+                width={"size": 8, "offset": 2},
+            ),
+            className="mt-3 mb-5",
+        ),
     ]
 )
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.layout = html.Div(body)
+
+# Each figure can have its own callback as demonstrated here.
+# Alternarively, a single, multi-output callback can be used to update all figures at once.
+# The figure labels also have their individual ids and can be modified via callbacks.
+for i in range(n_figures):
+
+    @app.callback(
+        Output(f"fig_{i}_graph", "figure"), [Input("refresh_button", "n_clicks")],
+    )
+    def refresh_figure(n_clicks):
+        if n_clicks is not None:
+            return make_figure()
+        else:
+            raise PreventUpdate
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
