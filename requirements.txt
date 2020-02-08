@@ -1,0 +1,6 @@
+dash
+plotly-express
+dash-bootstrap-components
+numpy
+black
+flake8
